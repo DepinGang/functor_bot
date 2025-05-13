@@ -1,7 +1,7 @@
 ![{719B1328-2667-4000-BC24-65AA8F3A0615}](https://github.com/user-attachments/assets/680a7c3e-bf87-4c30-943e-73cbcc28fad7)
 
-🚀 DEPIN GANG - Functor Node Bot    
-https://t.me/depingangchannel
+🚀 DEPIN GANG - Functor Node Bot    !!!FREE!!!
+ - license key in chat  https://t.me/depingangchannel
 ---
 Мощный Python-бот для автоматизации регистрации аккаунтов и фарминга на платформе Functor Node. С верификацией по email, поддержкой прокси и бесконечным фармингом! 🎉
 
