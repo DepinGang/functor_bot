@@ -28,6 +28,47 @@ class Functor:
         self.email_sender = EMAIL_SENDER
         self.imap_server = IMAP_SERVER
         self.imap_port = IMAP_PORT
+        self.encrypted_license_key = "VVRGR1pGRVdQUU1SWkJTTlRaRUtVTFdPS1pV"
+        self.encryption_key = "simplesecretkey4"
+
+    def verify_license(self):
+        """Проверяет лицензионный ключ при первом запуске."""
+        flag_file = "license_verified.flag"
+        
+        # Проверяем, существует ли флаг верификации
+        if os.path.exists(flag_file):
+            self.log(f"{Fore.GREEN}Лицензия уже проверена. Продолжаем...{Style.RESET_ALL}")
+            return True
+
+        # Расшифровываем лицензионный ключ
+        try:
+            decoded_key = base64.b64decode(self.encrypted_license_key).decode('utf-8')
+            expected_key = ''
+            for i in range(len(decoded_key)):
+                expected_key += chr(ord(decoded_key[i]) ^ ord(self.encryption_key[i % len(self.encryption_key)]))
+            expected_key = '-'.join([expected_key[i:i+4] for i in range(0, len(expected_key), 4)])
+        except Exception as e:
+            self.log(f"{Fore.RED}Ошибка расшифровки лицензионного ключа: {e}{Style.RESET_ALL}")
+            return False
+
+        # Запрашиваем ключ у пользователя
+        user_key = input(f"{Fore.CYAN + Style.BRIGHT}Введите лицензионный ключ (XXXX-XXXX-XXXX-XXXX): {Style.RESET_ALL}").strip().upper()
+        if not user_key:
+            self.log(f"{Fore.RED}Ключ не введен! Для получения ключа перейдите в чат https://t.me/depingangchannel{Style.RESET_ALL}")
+            return False
+        if user_key == expected_key:
+            self.log(f"{Fore.GREEN}Лицензионный ключ верный! Продолжаем...{Style.RESET_ALL}")
+            # Создаем флаг верификации
+            try:
+                with open(flag_file, 'w') as f:
+                    f.write("License verified")
+                return True
+            except Exception as e:
+                self.log(f"{Fore.RED}Ошибка создания флага верификации: {e}{Style.RESET_ALL}")
+                return False
+        else:
+            self.log(f"{Fore.RED}Неверный лицензионный ключ! Для получения ключа перейдите в чат https://t.me/depingangchannel{Style.RESET_ALL}")
+            return False
 
     def read_proxies(self, file_path: str) -> List[Dict[str, str]]:
         """Читает прокси из файла в формате username:password@host:port."""
@@ -279,7 +320,7 @@ class Functor:
         \_______/ \________|\__|      \______|\__|  \__|       \______/ \__|  \__|\__|  \__| \______/
                                       
                                 Functor Bot by DEPIN & GANG
-        {Fore.YELLOW + Style.BRIGHT}{Style.RESET_ALL}
+        {Fore.YELLOW + Style.BRIGHT}Получить лицензию: https://t.me/depingangchannel{Style.RESET_ALL}
         """
         print(logo)
 
@@ -590,6 +631,10 @@ class Functor:
     async def main(self):
         """Основная функция для отображения меню и выполнения операций."""
         try:
+            # Проверяем лицензионный ключ
+            if not self.verify_license():
+                return
+            
             while True:
                 choice = self.show_menu()
                 if choice == '1':
