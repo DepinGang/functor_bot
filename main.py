@@ -13,6 +13,7 @@ from datetime import datetime, timedelta
 from aiohttp import ClientResponseError, ClientSession, ClientTimeout
 from fake_useragent import FakeUserAgent
 from colorama import Fore, Style
+from cryptography.fernet import Fernet
 from typing import Optional, List, Dict, Tuple
 from config import BASE_URL, INVITE_CODE, HEADERS, EMAIL_SENDER, IMAP_SERVER, IMAP_PORT
 
@@ -28,11 +29,11 @@ class Functor:
         self.email_sender = EMAIL_SENDER
         self.imap_server = IMAP_SERVER
         self.imap_port = IMAP_PORT
-        self.encrypted_license_key = "VVRGR1pGRVdQUU1SWkJTTlRaRUtVTFdPS1pV"
-        self.encryption_key = "simplesecretkey4"
+        self.encrypted_license_key = "Z0FBQUFBQm9KTm91WEpTaW9mVW14UlVpNVdBZTBLVlc2bFcxNlBScUU5MVd5Y1BQYm5OZ1JGcXZWT3E2aXAxRmtyb2UyYWhndTVUaHlhV0tlSFE4TklHb21lRm40QjhGXy1KdnBhVy1YeHJBQThRbmV0MHBzRFE9"
+        self.fernet_key = "Mjx7q0XQd-m5WZxcAwoe9euwuora__n2HdhdAMLLVpM="
 
     def verify_license(self):
-        """Проверяет лицензионный ключ при первом запуске."""
+        """Проверяет лицензионный ключ при первом запуске с помощью Fernet."""
         flag_file = "license_verified.flag"
         
         # Проверяем, существует ли флаг верификации
@@ -42,11 +43,8 @@ class Functor:
 
         # Расшифровываем лицензионный ключ
         try:
-            decoded_key = base64.b64decode(self.encrypted_license_key).decode('utf-8')
-            expected_key = ''
-            for i in range(len(decoded_key)):
-                expected_key += chr(ord(decoded_key[i]) ^ ord(self.encryption_key[i % len(self.encryption_key)]))
-            expected_key = '-'.join([expected_key[i:i+4] for i in range(0, len(expected_key), 4)])
+            fernet = Fernet(self.fernet_key.encode('utf-8'))
+            decoded_key = fernet.decrypt(base64.b64decode(self.encrypted_license_key)).decode('utf-8')
         except Exception as e:
             self.log(f"{Fore.RED}Ошибка расшифровки лицензионного ключа: {e}{Style.RESET_ALL}")
             return False
@@ -54,9 +52,9 @@ class Functor:
         # Запрашиваем ключ у пользователя
         user_key = input(f"{Fore.CYAN + Style.BRIGHT}Введите лицензионный ключ (XXXX-XXXX-XXXX-XXXX): {Style.RESET_ALL}").strip().upper()
         if not user_key:
-            self.log(f"{Fore.RED}Ключ не введен! Для получения ключа перейдите в чат https://t.me/depingangchannel{Style.RESET_ALL}")
+            self.log(f"{Fore.RED}Ключ не введен! Для получения ключа (бесплатно) перейдите в чат https://t.me/depingangchannel{Style.RESET_ALL}")
             return False
-        if user_key == expected_key:
+        if user_key == decoded_key:
             self.log(f"{Fore.GREEN}Лицензионный ключ верный! Продолжаем...{Style.RESET_ALL}")
             # Создаем флаг верификации
             try:
